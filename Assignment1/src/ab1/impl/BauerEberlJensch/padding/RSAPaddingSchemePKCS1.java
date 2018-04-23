@@ -76,6 +76,10 @@ public class RSAPaddingSchemePKCS1 implements RSAPaddingScheme {
         }
 
         // ensure that at least the next 8 bytes are not zero
+        if (data.length <= PS_OFFSET + MIN_PS_BYTES) {
+            // data length is corrupt
+            return new byte[0];
+        }
         for (int i = 0; i < MIN_PS_BYTES; i++) {
             if (data[i + PS_OFFSET] == 0) {
                 // ok, data is invalid

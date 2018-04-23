@@ -4,6 +4,7 @@ import ab1.RSA;
 import ab1.impl.BauerEberlJensch.padding.RSAPaddingScheme;
 import ab1.impl.BauerEberlJensch.padding.RSAPaddingSchemeOAEP;
 import ab1.impl.BauerEberlJensch.padding.RSAPaddingSchemePKCS1;
+import ab1.impl.BauerEberlJensch.signature.PKCS1;
 
 import java.math.BigInteger;
 import java.security.SecureRandom;
@@ -65,6 +66,11 @@ public class RSAImpl implements RSA {
         privateKey = new PrivateKey(N, d);
     }
 
+    /**
+     * Generate the encryption exponent
+     * @param phi Phi, which is (p -1) * (q - 1) where, p and q are non-identical prime numbers.
+     * @return Encryption exponent.
+     */
     private static BigInteger generateEncryptionExponent(BigInteger phi) {
         BigInteger e = MAGIC;
 
@@ -75,6 +81,13 @@ public class RSAImpl implements RSA {
         return e;
     }
 
+    /**
+     * Generate decryption exponent.
+     *
+     * @param phi Phi, which is (p -1) * (q - 1) where, p and q are non-identical prime numbers.
+     * @param e Encryption exponent generated via {@link #generateEncryptionExponent(BigInteger)}
+     * @return Decryption exponent.
+     */
     private static BigInteger generateDecryptionExponent(BigInteger phi, BigInteger e) {
 
         return e.modInverse(phi);
@@ -194,7 +207,7 @@ public class RSAImpl implements RSA {
             byte[] messageChunk = paddingScheme.decode(decryptedChunk);
 
             // store decrypted message in final message
-            if (message.length - messageOffset > messageChunk.length) {
+            if (messageOffset + messageChunk.length <= message.length) {
                 System.arraycopy(messageChunk, 0, message, messageOffset, messageChunk.length);
             } else {
                 // huh - need to reallocate the final message
@@ -211,6 +224,14 @@ public class RSAImpl implements RSA {
         return Arrays.copyOf(message, messageOffset);
     }
 
+    /**
+     * Utility function to decrypt a given message.
+     *
+     * @param data The cipher to decrypt.
+     * @param exponent The exponent used for decryption.
+     * @param modulus Modulus used for decryption.
+     * @return Decrypted message.
+     */
     private static byte[] decrypt(byte[] data, BigInteger exponent, BigInteger modulus) {
 
         // internal sanity check - ensure the data length
@@ -235,13 +256,18 @@ public class RSAImpl implements RSA {
 
     @Override
     public byte[] sign(byte[] message) {
-        // TODO Auto-generated method stub
-        return null;
+
+        int expectedMessageLength = getPrivateKey().getN().bitLength() / 8;
+        byte[] encodedMessage = PKCS1.encode(message, expectedMessageLength);
+
+        return encrypt(encodedMessage, getPrivateKey().getD(), getPrivateKey().getN());
     }
 
     @Override
     public Boolean verify(byte[] message, byte[] signature) {
-        // TODO Auto-generated method stub
-        return null;
+
+        byte[] decrypted = decrypt(signature, getPublicKey().getE(), getPublicKey().getN());
+
+        return PKCS1.verify(decrypted, message);
     }
 }
