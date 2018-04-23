@@ -8,32 +8,32 @@ public interface RSAPaddingScheme {
     byte getIdentifier();
 
     /**
-     * Get the maximum chunk length to encrypt.
+     * Get the maximum chunk length to encode.
      */
     int maximumPlainTextLength();
 
     /**
-     * Get the maximum chunk length to encrypt.
+     * Get the maximum chunk length to decode.
      */
     int maximumCipherTextLength();
 
     /**
-     * Encrypt given data.
+     * Encode given message based on the padding scheme.
      *
      * <p>
-     *     {@code data.length} must be less than or equal to {@link #maxEncryptMessageLength()}.
+     *     {@code data.length} must be less than or equal to {@link #maximumPlainTextLength()}.
      * </p>
      *
-     * @param data Data to encrypt.
-     * @return Encrypted data.
+     * @param data Data to encode.
+     * @return Padding scheme encoded message.
      */
-    byte[] encrypt(byte[] data);
+    byte[] encode(byte[] data);
 
     /**
-     * Decrypt
+     * Decode given message based on the padding scheme.
      *
      * @param data
      * @return
      */
-    byte[] decrypt(byte[] data);
+    byte[] decode(byte[] data);
 }

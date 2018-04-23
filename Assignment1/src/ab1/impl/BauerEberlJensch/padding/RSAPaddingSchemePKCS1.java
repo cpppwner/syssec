@@ -1,8 +1,5 @@
 package ab1.impl.BauerEberlJensch.padding;
 
-import ab1.RSA;
-
-import java.math.BigInteger;
 import java.security.SecureRandom;
 import java.util.Arrays;
 
@@ -17,13 +14,11 @@ public class RSAPaddingSchemePKCS1 implements RSAPaddingScheme {
     private static final int PS_OFFSET = 2;
     private static final int PADDING_BYTES = PS_OFFSET + MIN_PS_BYTES + 1;
 
-    private final RSA.PublicKey publicKey;
-    private final RSA.PrivateKey privateKey;
+    private final int modulusBitLength;
     private final SecureRandom random = new SecureRandom();
 
-    public RSAPaddingSchemePKCS1(RSA.PublicKey publicKey, RSA.PrivateKey privateKey) {
-        this.publicKey = publicKey;
-        this.privateKey = privateKey;
+    public RSAPaddingSchemePKCS1(int modulusBitLength) {
+        this.modulusBitLength = modulusBitLength;
     }
 
     @Override
@@ -35,18 +30,18 @@ public class RSAPaddingSchemePKCS1 implements RSAPaddingScheme {
     public int maximumPlainTextLength() {
         // the computation below is equal to floor(publicKey.getN().bitLength() / 8.0) - padding bytes
         // but since it's just integer operations probably faster
-        return modulLengthInBytes() - PADDING_BYTES;
+        return modulusLengthInBytes() - PADDING_BYTES;
     }
 
     @Override
     public int maximumCipherTextLength() {
         // the computation below is equal to ceil(publicKey.getN().bitLength() / 8.0)
         // but since it's just integer operations probably faster
-        return (publicKey.getN().bitLength() + 7) / 8;
+        return (modulusBitLength + 7) / 8;
     }
 
     @Override
-    public byte[] encrypt(byte[] data) {
+    public byte[] encode(byte[] data) {
 
         // internal sanity check - ensure the data length
         if (data.length > maximumPlainTextLength()) {
@@ -54,7 +49,7 @@ public class RSAPaddingSchemePKCS1 implements RSAPaddingScheme {
         }
 
         // generate the random string for padding
-        byte[] paddingString = generateRandomPaddingString(modulLengthInBytes() - 3 - data.length);
+        byte[] paddingString = generateRandomPaddingString(modulusLengthInBytes() - 3 - data.length);
 
         // build up the message for encryption
         byte[] message = new byte[data.length + 3 + paddingString.length];
@@ -67,53 +62,22 @@ public class RSAPaddingSchemePKCS1 implements RSAPaddingScheme {
         // followed by the message to encrypt
         System.arraycopy(data, 0, message, paddingString.length + 3, data.length);
 
-        // now do the real encryption
-        BigInteger c = new BigInteger(1, message).modPow(publicKey.getE(), publicKey.getN());
-
-        byte[] cipher = c.toByteArray();
-        if (c.bitLength() % 8 == 0 && c.bitLength() / 8 != cipher.length) {
-            // sign bit - leading 0
-            cipher = Arrays.copyOfRange(cipher, 1, cipher.length);
-        }
-
-        if (cipher.length > maximumCipherTextLength()) {
-            // just a sanity check
-            throw new IllegalStateException("cipher too long (got=" + cipher.length + "; expected=" +maximumCipherTextLength()+ ")");
-        }
-
-        return cipher;
+        return message;
     }
 
     @Override
-    public byte[] decrypt(byte[] data) {
-
-        // internal sanity check - ensure the data length
-        if (data.length > maximumCipherTextLength()) {
-            throw new IllegalArgumentException("data.length is invalid");
-        }
-
-        // decrypt the chunk
-        BigInteger decrypted = new BigInteger(1, data).modPow(privateKey.getD(), privateKey.getN());
-        byte[] decryptedData = decrypted.toByteArray();
-        if ((decrypted.bitLength() % 8) == 0 && decrypted.bitLength() / 8 != decryptedData.length) {
-            // sign bit - leading 0
-            decryptedData = Arrays.copyOfRange(decryptedData, 1, decryptedData.length);
-        }
-
-        // build up the resulting message
-        byte[] result = new byte[modulLengthInBytes()];
-        System.arraycopy(decryptedData, 0, result, result.length - decryptedData.length, decryptedData.length);
+    public byte[] decode(byte[] data) {
 
         // validate the padding
-        if (result[0] != 0x00 && result[1] != 0x02) {
-            // ok, something f*cked up the padding bytes
+        if (data[0] != 0x00 && data[1] != 0x02) {
+            // the data seems to be corrupt
             // don't throw an exception, but rather return an empty byte array
             return new byte[0];
         }
 
         // ensure that at least the next 8 bytes are not zero
         for (int i = 0; i < MIN_PS_BYTES; i++) {
-            if (result[i + PS_OFFSET] == 0) {
+            if (data[i + PS_OFFSET] == 0) {
                 // ok, data is invalid
                 return new byte[0];
             }
@@ -121,18 +85,19 @@ public class RSAPaddingSchemePKCS1 implements RSAPaddingScheme {
 
         // search for first zero byte after padding string
         int offset = PS_OFFSET + MIN_PS_BYTES;
-        while (offset < result.length && result[offset] != 0) {
+        while (offset < data.length && data[offset] != 0) {
             offset += 1;
         }
         // offset is now at the trailing 0 byte of the padding
         // increment by one again and now the real message starts
         offset += 1;
 
-        if (offset >= result.length) {
+        if (offset >= data.length) {
+            // either the data is invalid, or message is intentionally empty
             return new byte[0];
         }
 
-        return Arrays.copyOfRange(result, offset, result.length);
+        return Arrays.copyOfRange(data, offset, data.length);
     }
 
     public static boolean isPKCS1PaddingScheme(byte[] cipher) {
@@ -159,7 +124,7 @@ public class RSAPaddingSchemePKCS1 implements RSAPaddingScheme {
 
     }
 
-    private int modulLengthInBytes() {
-        return publicKey.getN().bitLength() /  8;
+    private int modulusLengthInBytes() {
+        return modulusBitLength /  8;
     }
 }

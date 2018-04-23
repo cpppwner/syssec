@@ -94,8 +94,8 @@ public class RSAImpl implements RSA {
     public byte[] encrypt(byte[] data, boolean activateOAEP) {
 
         RSAPaddingScheme paddingScheme = activateOAEP
-                ? new RSAPaddingSchemeOAEP(getPublicKey(), getPrivateKey())
-                : new RSAPaddingSchemePKCS1(getPublicKey(), getPrivateKey());
+                ? new RSAPaddingSchemeOAEP(getPublicKey().getN().bitLength())
+                : new RSAPaddingSchemePKCS1(getPublicKey().getN().bitLength());
 
         // maximum length of plain text message & cipher text message
         int messageChunkSize = paddingScheme.maximumPlainTextLength();
@@ -114,10 +114,12 @@ public class RSAImpl implements RSA {
             // get the chunk that shall be encrypted
             int chunkIndexStart = i * messageChunkSize;
             int chunkIndexEnd = Math.min((i + 1) * messageChunkSize, data.length);
-            byte[] chunk = Arrays.copyOfRange(data, chunkIndexStart, chunkIndexEnd);
 
             // encode the chunk
-            byte[] cipherChunk = paddingScheme.encrypt(chunk);
+            byte[] message = paddingScheme.encode(Arrays.copyOfRange(data, chunkIndexStart, chunkIndexEnd));
+
+            // and encrypt the previously encoded message
+            byte[] cipherChunk = encrypt(message, publicKey.getE(), publicKey.getN());
 
             // store encrypted chunk in final cipher
             // NOTE: each output block has a fixed length of cipherChunkSize with leading zeros.
@@ -128,14 +130,41 @@ public class RSAImpl implements RSA {
         return cipher;
     }
 
+    /**
+     * Utility function to encrypt a given message.
+     *
+     * @param message The message to encrypt.
+     * @param exponent The exponent used for encryption.
+     * @param modulus Modulus used for encryption.
+     * @return Encrypted message.
+     */
+    private static byte[] encrypt(byte[] message, BigInteger exponent, BigInteger modulus) {
+        // now do the real encryption
+        BigInteger c = new BigInteger(1, message).modPow(exponent, modulus);
+
+        byte[] cipher = c.toByteArray();
+        if (c.bitLength() % 8 == 0 && c.bitLength() / 8 != cipher.length) {
+            // sign bit - leading 0
+            cipher = Arrays.copyOfRange(cipher, 1, cipher.length);
+        }
+
+        int maximumCipherTextLength = modulus.bitLength() / 8;
+        if (cipher.length > maximumCipherTextLength) {
+            // just a sanity check
+            throw new IllegalStateException("cipher too long (got=" + cipher.length + "; expected=" +maximumCipherTextLength + ")");
+        }
+
+        return cipher;
+    }
+
     @Override
     public byte[] decrypt(byte[] data) {
 
         RSAPaddingScheme paddingScheme;
         if (RSAPaddingSchemePKCS1.isPKCS1PaddingScheme(data)) {
-            paddingScheme = new RSAPaddingSchemePKCS1(getPublicKey(), getPrivateKey());
+            paddingScheme = new RSAPaddingSchemePKCS1(getPrivateKey().getN().bitLength());
         } else if (RSAPaddingSchemeOAEP.isOAEPPaddingScheme(data)) {
-            paddingScheme = new RSAPaddingSchemeOAEP(getPublicKey(), getPrivateKey());
+            paddingScheme = new RSAPaddingSchemeOAEP(getPrivateKey().getN().bitLength());
         } else {
             throw new IllegalArgumentException("Unknown padding scheme.");
         }
@@ -159,7 +188,10 @@ public class RSAImpl implements RSA {
             byte[] chunk = Arrays.copyOfRange(data, chunkIndexStart, chunkIndexEnd);
 
             // decrypt previously obtained chunk
-            byte[] messageChunk = paddingScheme.decrypt(chunk);
+            byte[] decryptedChunk = decrypt(chunk, getPrivateKey().getD(), getPrivateKey().getN());
+
+            // decode using padding scheme
+            byte[] messageChunk = paddingScheme.decode(decryptedChunk);
 
             // store decrypted message in final message
             if (message.length - messageOffset > messageChunk.length) {
@@ -179,6 +211,28 @@ public class RSAImpl implements RSA {
         return Arrays.copyOf(message, messageOffset);
     }
 
+    private static byte[] decrypt(byte[] data, BigInteger exponent, BigInteger modulus) {
+
+        // internal sanity check - ensure the data length
+        int maximumCipherTextLength = (modulus.bitLength() + 7) / 8;
+        if (data.length > maximumCipherTextLength) {
+            throw new IllegalArgumentException("data.length is invalid");
+        }
+
+        // decrypt the chunk
+        BigInteger decrypted = new BigInteger(1, data).modPow(exponent, modulus);
+        byte[] decryptedData = decrypted.toByteArray();
+        if ((decrypted.bitLength() % 8) == 0 && decrypted.bitLength() / 8 != decryptedData.length) {
+            // sign bit - leading 0
+            decryptedData = Arrays.copyOfRange(decryptedData, 1, decryptedData.length);
+        }
+
+        // build up the resulting message
+        byte[] result = new byte[modulus.bitLength() / 8];
+        System.arraycopy(decryptedData, 0, result, result.length - decryptedData.length, decryptedData.length);
+        return result;
+    }
+
     @Override
     public byte[] sign(byte[] message) {
         // TODO Auto-generated method stub
@@ -189,24 +243,5 @@ public class RSAImpl implements RSA {
     public Boolean verify(byte[] message, byte[] signature) {
         // TODO Auto-generated method stub
         return null;
-    }
-
-    private static byte[] encrypt(byte[] message, BigInteger exp, BigInteger modulus) {
-
-        // now do the real encryption
-        BigInteger c = new BigInteger(1, message).modPow(exp, modulus);
-
-        byte[] cipher = c.toByteArray();
-        if (c.bitLength() % 8 == 0 && c.bitLength() / 8 != cipher.length) {
-            // sign bit - leading 0
-            cipher = Arrays.copyOfRange(cipher, 1, cipher.length);
-        }
-
-        if (cipher.length > maximumCipherTextLength()) {
-            // just a sanity check
-            throw new IllegalStateException("cipher too long (got=" + cipher.length + "; expected=" +maximumCipherTextLength()+ ")");
-        }
-
-        return cipher;
     }
 }

@@ -1,8 +1,5 @@
 package ab1.impl.BauerEberlJensch.padding;
 
-import ab1.RSA;
-
-import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
@@ -21,14 +18,12 @@ public class RSAPaddingSchemeOAEP implements RSAPaddingScheme {
 
     private static final String HASH_FUNCTION_NAME = "SHA-256";
 
-    private final RSA.PublicKey publicKey;
-    private final RSA.PrivateKey privateKey;
+    private final int modulusBitLength;
     private final int hashFunctionLength;
     private final SecureRandom random = new SecureRandom();
 
-    public RSAPaddingSchemeOAEP(RSA.PublicKey publicKey, RSA.PrivateKey privateKey) {
-        this.publicKey = publicKey;
-        this.privateKey = privateKey;
+    public RSAPaddingSchemeOAEP(int modulusBitLength) {
+        this.modulusBitLength = modulusBitLength;
         try {
             hashFunctionLength = MessageDigest.getInstance(HASH_FUNCTION_NAME).getDigestLength();
         } catch (NoSuchAlgorithmException e) {
@@ -45,50 +40,23 @@ public class RSAPaddingSchemeOAEP implements RSAPaddingScheme {
     public int maximumPlainTextLength() {
         // the computation below is equal to floor(publicKey.getN().bitLength() / 8.0) - padding bytes
         // but since it's just integer operations probably faster
-        return modulLengthInBytes() - 2 * hashFunctionLength - 2;
+        return modulusLengthInBytes() - 2 * hashFunctionLength - 2;
     }
 
     @Override
     public int maximumCipherTextLength() {
         // the computation below is equal to ceil(publicKey.getN().bitLength() / 8.0)
         // but since it's just integer operations probably faster
-        return (publicKey.getN().bitLength() + 7) / 8;
+        return (modulusBitLength + 7) / 8;
     }
 
     @Override
-    public byte[] encrypt(byte[] data) {
+    public byte[] encode(byte[] data) {
 
         // internal sanity check - ensure the data length
         if (data.length > maximumPlainTextLength()) {
             throw new IllegalArgumentException("data.length is invalid");
         }
-        // first encode the message
-        byte[] message = encodeMessage(data);
-
-        // now do the real encryption
-        BigInteger c = new BigInteger(1, message).modPow(publicKey.getE(), publicKey.getN());
-
-        byte[] cipher = c.toByteArray();
-        if (c.bitLength() % 8 == 0 && c.bitLength() / 8 != cipher.length) {
-            // sign bit - leading 0
-            cipher = Arrays.copyOfRange(cipher, 1, cipher.length);
-        }
-
-        if (cipher.length > maximumCipherTextLength()) {
-            // just a sanity check
-            throw new IllegalStateException("cipher too long (got=" + cipher.length + "; expected=" +maximumCipherTextLength()+ ")");
-        }
-
-        return cipher;
-    }
-
-    /**
-     * Encode the OAEP padded message which will be encrypted.
-     *
-     * @data The data to encode and encrypt.
-     * @return Encoded message, which can be encrypted.
-     */
-    private byte[] encodeMessage(byte[] data) {
 
         // If the label L is not provided, let L be the empty string.
         // Let lHash = Hash(L)
@@ -105,7 +73,7 @@ public class RSAPaddingSchemeOAEP implements RSAPaddingScheme {
         random.nextBytes(seed);
 
         // Let dbMask = MGF(seed, k - hLen - 1)
-        byte[] dataBlockMask = MGF1(seed, modulLengthInBytes() - hashFunctionLength - 1);
+        byte[] dataBlockMask = MGF1(seed, modulusLengthInBytes() - hashFunctionLength - 1);
 
         // internal sanity check
         if (dataBlock.length != dataBlockMask.length) {
@@ -150,34 +118,7 @@ public class RSAPaddingSchemeOAEP implements RSAPaddingScheme {
     }
 
     @Override
-    public byte[] decrypt(byte[] data) {
-
-        // internal sanity check - ensure the data length
-        if (data.length > maximumCipherTextLength()) {
-            throw new IllegalArgumentException("data.length is invalid");
-        }
-
-        // decrypt the chunk
-        BigInteger decrypted = new BigInteger(1, data).modPow(privateKey.getD(), privateKey.getN());
-        byte[] decryptedData = decrypted.toByteArray();
-        if ((decrypted.bitLength() % 8) == 0 && decrypted.bitLength() / 8 != decryptedData.length) {
-            // sign bit - leading 0
-            decryptedData = Arrays.copyOfRange(decryptedData, 1, decryptedData.length);
-        }
-
-        // build up the resulting message
-        byte[] result = new byte[modulLengthInBytes()];
-        System.arraycopy(decryptedData, 0, result, result.length - decryptedData.length, decryptedData.length);
-
-        return decodeMessage(result);
-    }
-
-    /**
-     * Decode the OAEP padded message.
-     * @param data Previously decrypted message.
-     * @return Plain message as passed to the {@link #encrypt(byte[])} method.
-     */
-    private byte[] decodeMessage(byte[] data) {
+    public byte[] decode(byte[] data) {
 
         // If the label L is not provided, let L be the empty string.
         // Let lHash = Hash(L)
@@ -207,7 +148,7 @@ public class RSAPaddingSchemeOAEP implements RSAPaddingScheme {
         }
 
         // Let dbMask = MGF(seed, k - hLen - 1).
-        byte[] dataBlockMask = MGF1(seed, modulLengthInBytes() - hashFunctionLength - 1);
+        byte[] dataBlockMask = MGF1(seed, modulusLengthInBytes() - hashFunctionLength - 1);
 
         // Let DB = maskedDB \xor dbMask.
         byte[] dataBlock = Arrays.copyOf(maskedDataBlock, maskedDataBlock.length);
@@ -245,8 +186,8 @@ public class RSAPaddingSchemeOAEP implements RSAPaddingScheme {
         return cipher[0] == IDENTIFIER;
     }
 
-    private int modulLengthInBytes() {
-        return publicKey.getN().bitLength() /  8;
+    private int modulusLengthInBytes() {
+        return modulusBitLength /  8;
     }
 
     /**
