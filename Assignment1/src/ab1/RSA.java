@@ -10,8 +10,7 @@ import java.math.BigInteger;
 public interface RSA {
 
 	/**
-	 * Definiert die Bitlänge der Schlüssekomponenten
-	 * @param n
+	 * Definiert die Bitlänge der Schlüssekomponenten * @param n
 	 */
 	public void init(int n);
 
@@ -55,7 +54,7 @@ public interface RSA {
 	 * @param signature
 	 * @return
 	 */
-	public byte[] verify(byte[] message, byte[] signature);
+	public Boolean verify(byte[] message, byte[] signature);
 
 	public static class PublicKey {
 		private BigInteger n;
