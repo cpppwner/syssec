@@ -343,7 +343,7 @@ public class RSAImplTest {
     }
 
     @Test
-    @Ignore("Integration test")
+    //@Ignore("Integration test")
     public void theNeverEndingStoryTest() {
 
         SecureRandom random = new SecureRandom();
