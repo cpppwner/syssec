@@ -347,7 +347,7 @@ public class RSAImplTest {
     public void theNeverEndingStoryTest() {
 
         SecureRandom random = new SecureRandom();
-        int[] keyLengths = { 512, 1024, 2048, 4096 };
+        int[] keyLengths = { 1024, 2048, 4096 };
 
         // repeat for a very long time
         for (int i = 0; i < 1024 * 1024; i++) {
