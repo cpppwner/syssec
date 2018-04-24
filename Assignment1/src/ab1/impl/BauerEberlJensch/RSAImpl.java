@@ -32,6 +32,8 @@ public class RSAImpl implements RSA {
     public void init(int n) {
 
         // generate two distinct primes
+        // this is required to further calculate the encryption/decryption exponents
+        // and the modulus.
         SecureRandom random = new SecureRandom();
 
         BigInteger N;
@@ -45,7 +47,7 @@ public class RSAImpl implements RSA {
                 q = BigInteger.probablePrime(n / 2, random);
             } while (p.equals(q));
 
-            // calculate N = p * q
+            // calculate N = p * q - N is the modulus used for encryption/decryption
             // NOTE: the slides use lower case n, but that's already in use
             // therefore use upper case
             N = p.multiply(q);
@@ -75,6 +77,9 @@ public class RSAImpl implements RSA {
         BigInteger e = MAGIC;
 
         while (!phi.gcd(e).equals(BigInteger.ONE)) {
+            // phi is an even number, therefore incrementing by one
+            // does not make sense, since GCD will not be one, if e
+            // is also even.
             e = e.add(TWO);
         }
 
@@ -90,6 +95,7 @@ public class RSAImpl implements RSA {
      */
     private static BigInteger generateDecryptionExponent(BigInteger phi, BigInteger e) {
 
+        // decryption exponent must be mod inverse of encryption exponent
         return e.modInverse(phi);
     }
 
@@ -257,17 +263,21 @@ public class RSAImpl implements RSA {
     @Override
     public byte[] sign(byte[] message) {
 
+        // encode the message
         int expectedMessageLength = getPrivateKey().getN().bitLength() / 8;
         byte[] encodedMessage = PKCS1.encode(message, expectedMessageLength);
 
+        // and encrypt encoded message using the private key
         return encrypt(encodedMessage, getPrivateKey().getD(), getPrivateKey().getN());
     }
 
     @Override
     public Boolean verify(byte[] message, byte[] signature) {
 
+        // decrypt the signature using the public key
         byte[] decrypted = decrypt(signature, getPublicKey().getE(), getPublicKey().getN());
 
+        // verify the decrypted message against the plain text message.
         return PKCS1.verify(decrypted, message);
     }
 }

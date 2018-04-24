@@ -1,12 +1,13 @@
 package ab1.impl.BauerEberlJensch.padding;
 
-import java.security.SecureRandom;
 import java.util.Arrays;
 
 /**
  * PKCS1 v1.5 padding scheme.
  */
 public class RSAPaddingSchemePKCS1 implements RSAPaddingScheme {
+
+    private static final byte PADDING_BYTE = (byte)0xff;
 
     private static final byte IDENTIFIER = 0x2A;
 
@@ -15,7 +16,6 @@ public class RSAPaddingSchemePKCS1 implements RSAPaddingScheme {
     private static final int PADDING_BYTES = PS_OFFSET + MIN_PS_BYTES + 1;
 
     private final int modulusBitLength;
-    private final SecureRandom random = new SecureRandom();
 
     public RSAPaddingSchemePKCS1(int modulusBitLength) {
         this.modulusBitLength = modulusBitLength;
@@ -49,7 +49,7 @@ public class RSAPaddingSchemePKCS1 implements RSAPaddingScheme {
         }
 
         // generate the random string for padding
-        byte[] paddingString = generateRandomPaddingString(modulusLengthInBytes() - 3 - data.length);
+        byte[] paddingString = generatePaddingString(modulusLengthInBytes() - 3 - data.length);
 
         // build up the message for encryption
         byte[] message = new byte[data.length + 3 + paddingString.length];
@@ -75,23 +75,28 @@ public class RSAPaddingSchemePKCS1 implements RSAPaddingScheme {
             return new byte[0];
         }
 
-        // ensure that at least the next 8 bytes are not zero
-        if (data.length <= PS_OFFSET + MIN_PS_BYTES) {
-            // data length is corrupt
-            return new byte[0];
-        }
-        for (int i = 0; i < MIN_PS_BYTES; i++) {
-            if (data[i + PS_OFFSET] == 0) {
-                // ok, data is invalid
+        int paddingCount = 0;
+        int offset = PS_OFFSET;
+        while (offset < data.length && data[offset] != 0) {
+            if (data[offset] != PADDING_BYTE) {
+                // data is incorrect
                 return new byte[0];
             }
-        }
 
-        // search for first zero byte after padding string
-        int offset = PS_OFFSET + MIN_PS_BYTES;
-        while (offset < data.length && data[offset] != 0) {
+            paddingCount += 1;
             offset += 1;
         }
+
+        if (paddingCount < MIN_PS_BYTES) {
+            // too few padding bytes
+            return new byte[0];
+        }
+
+        if (offset < data.length && data[offset] != 0) {
+            // byte value is after padding string is not equal to expected one
+            return new byte[0];
+        }
+
         // offset is now at the trailing 0 byte of the padding
         // increment by one again and now the real message starts
         offset += 1;
@@ -109,23 +114,27 @@ public class RSAPaddingSchemePKCS1 implements RSAPaddingScheme {
     }
 
     /**
-     * Generate a random padding string, consisting of bytes which are not zero.
+     * Generate a padding string, consisting of bytes which are all set to {@link #PADDING_BYTE}.
+     *
+     * <p>
+     *     Note the RFC described way would be to generate a random padding string of given length
+     *     with random byte values which are all greater than zero.
+     *     Due to the fact, that the unit tests want a deterministic behaviour this was changed
+     *     to a defined content.
+     * </p>
+     *
      * @param length  The length of the padding string in bytes.
      * @return A random padding string.
      */
-    private byte[] generateRandomPaddingString(int length) {
+    private byte[] generatePaddingString(int length) {
 
-        byte[] randomPaddingString = new byte[length];
+        byte[] paddingString = new byte[length];
 
-        for (int i = 0; i < randomPaddingString.length; i++) {
-            // NOTE: the padding string must not contain zeros
-            // Therefore generate a random integer in the range [0, 255) and add 1
-            // which results in an integer in range [1, 255]
-            randomPaddingString[i] = (byte)(random.nextInt(255) + 1);
+        for (int i = 0; i < paddingString.length; i++) {
+            paddingString[i] = PADDING_BYTE;
         }
 
-        return randomPaddingString;
-
+        return paddingString;
     }
 
     private int modulusLengthInBytes() {

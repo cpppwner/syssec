@@ -32,8 +32,8 @@ public interface RSAPaddingScheme {
     /**
      * Decode given message based on the padding scheme.
      *
-     * @param data
-     * @return
+     * @param data Data to decode.
+     * @return Padding scheme encoded message, which is the plain message or an empty one on error.
      */
     byte[] decode(byte[] data);
 }

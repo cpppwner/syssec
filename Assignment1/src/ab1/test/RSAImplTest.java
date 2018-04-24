@@ -5,7 +5,6 @@ import ab1.impl.BauerEberlJensch.RSAImpl;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import java.math.BigInteger;
 import java.security.SecureRandom;
 import java.util.Arrays;
 import java.util.function.Supplier;
@@ -92,7 +91,7 @@ public class RSAImplTest {
     }
 
     @Test
-    public void modulusSizeIsSameAsGivenKeySizeWithinOneBit() {
+    public void modulusSizeIsSameAsGivenKeySize() {
 
         // given
         RSAImpl target = new RSAImpl();
@@ -104,8 +103,8 @@ public class RSAImplTest {
 
             // then
             assertThat(target.getPublicKey().getN(), is(equalTo(target.getPrivateKey().getN())));
-            BigInteger n = target.getPublicKey().getN();
-            assertThat(n.bitLength(), is(equalTo(size)));
+            assertThat(target.getPublicKey().getN().bitLength(), is(equalTo(size)));
+            assertThat(target.getPrivateKey().getN().bitLength(), is(equalTo(size)));
         }
     }
 
@@ -343,14 +342,15 @@ public class RSAImplTest {
     }
 
     @Test
-    //@Ignore("Integration test")
+    @Ignore("Integration test")
     public void theNeverEndingStoryTest() {
 
         SecureRandom random = new SecureRandom();
         int[] keyLengths = { 1024, 2048, 4096 };
 
         // repeat for a very long time
-        for (int i = 0; i < 1024 * 1024; i++) {
+        int numRepetitions = 1000 * 1000;
+        for (int i = 0; i < numRepetitions; i++) {
 
             // generate a random keyLength
             int keyLength = keyLengths[random.nextInt(keyLengths.length)];
@@ -409,6 +409,10 @@ public class RSAImplTest {
 
             // ensure that the signature verification fails now
             assertThat(target.verify(message, signature), is(false));
+
+            if (i > 0 && i % 1000 == 0) {
+                System.out.println("Passed " + i + "/" + numRepetitions + " tests.");
+            }
         }
     }
 
