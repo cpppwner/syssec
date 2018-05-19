@@ -42,7 +42,7 @@ public interface ElGamal {
 	 * Entschlüsselt die Daten. Ob das OAEP verwendet wird, muss den Daten entnommen
 	 * werden
 	 *
-	 * @param datam
+	 * @param data
 	 * @return
 	 */
 	public byte[] decrypt(byte[] data);

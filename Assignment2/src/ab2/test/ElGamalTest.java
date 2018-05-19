@@ -1,6 +1,6 @@
 package ab2.test;
 
-public class SigTest {
+public class ElGamalTest {
 
 	//Folgen
 }
