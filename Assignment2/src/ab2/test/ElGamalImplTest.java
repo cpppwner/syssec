@@ -308,7 +308,7 @@ public class ElGamalImplTest {
                 // ensure that the signature verification fails now
                 assertThat(target.verify(message, signature), is(false));
 
-                if (i > 0 && i % 1000 == 0) {
+                if (((i + 1) % 1000) == 0) {
                     System.out.println("Passed " + (i + 1) + "/" + numRepetitions + " tests (keyLength=" + keyLength + ").");
                 }
             }
