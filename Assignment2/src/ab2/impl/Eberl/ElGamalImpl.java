@@ -6,10 +6,7 @@ import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * Implementation of ElGamal.
@@ -22,17 +19,21 @@ public class ElGamalImpl implements ElGamal {
 
     /**
      * The minimum number of padding bytes when encrypting data.
+     *
+     * <p>
+     *     At least the {@link #PADDING_SEPARATOR} must be added.
+     * </p>
      */
-    private static final int MIN_NUM_PADDING_BYTES = 2;
+    private static final int MIN_NUM_PADDING_BYTES = 1;
 
     /**
      * Padding byte.
      */
-    private static final byte PADDING_BYTE = (byte)0xff;
+    private static final byte PADDING_BYTE = 0x00;
     /**
      * Byte value used to separate the padding bytes from plain text message.
      */
-    private static final byte PADDING_PLAIN_TEXT_SEPARATOR = 0x00;
+    private static final byte PADDING_SEPARATOR = 0x01;
 
     /**
      * Default certainty for prime checking.
@@ -291,7 +292,12 @@ public class ElGamalImpl implements ElGamal {
      * @param maxChunkLength The maximum length in bytes for a single chunk.
      * @return The split chunks.
      */
-    private List<byte[]> splitIntoChunks(byte[] data, int maxChunkLength) {
+    private static List<byte[]> splitIntoChunks(byte[] data, int maxChunkLength) {
+
+        // if the incoming data is empty, then we extract exactly one chunk, which is empty
+        if (data.length == 0) {
+            return Collections.singletonList(data);
+        }
 
         // pre-compute the number of chunks which are expected
         int numChunks = data.length % maxChunkLength == 0
@@ -360,7 +366,7 @@ public class ElGamalImpl implements ElGamal {
      *
      * <p>
      *     The padding scheme is quite simple and not really secure.
-     *     The padded string is {@link #PADDING_BYTE} || {@link #PADDING_PLAIN_TEXT_SEPARATOR} || chunk.
+     *     The padded string is {@link #PADDING_BYTE} || {@link #PADDING_SEPARATOR} || chunk.
      * </p>
      *
      * @param chunk The chunk to pad.
@@ -376,8 +382,7 @@ public class ElGamalImpl implements ElGamal {
             paddedChunk[i] = PADDING_BYTE;
         }
 
-        // not necessary to add 0x00, but just to show how it works
-        paddedChunk[numPaddingBytes] = PADDING_PLAIN_TEXT_SEPARATOR;
+        paddedChunk[numPaddingBytes] = PADDING_SEPARATOR;
 
         // copy chunk data
         System.arraycopy(chunk, 0, paddedChunk, numPaddingBytes + 1, chunk.length);
@@ -454,7 +459,7 @@ public class ElGamalImpl implements ElGamal {
      *
      * <p>
      *     The padding scheme is quite simple and not really secure.
-     *     The padded string is {@link #PADDING_BYTE} || {@link #PADDING_PLAIN_TEXT_SEPARATOR} || chunk.
+     *     The padded string is {@link #PADDING_BYTE} || {@link #PADDING_SEPARATOR} || chunk.
      * </p>
      *
      * @param chunk The chunk to un-pad.
@@ -465,7 +470,7 @@ public class ElGamalImpl implements ElGamal {
         // search for padding/message separator byte
         int separatorByteIndex = -1;
         for (int i = 0; i < chunk.length; i++) {
-            if (chunk[i] == PADDING_PLAIN_TEXT_SEPARATOR) {
+            if (chunk[i] == PADDING_SEPARATOR) {
                 // found the separator byte
                 separatorByteIndex = i;
                 break;
@@ -473,9 +478,7 @@ public class ElGamalImpl implements ElGamal {
         }
 
         // if no separator was found the cipher has been compromised
-        // at least one #PADDING_BYTE is expected before the separator,
-        // therefore if the separator is found at index 0, the cipher is also compromised
-        if (separatorByteIndex < 1) {
+        if (separatorByteIndex < 0) {
             // just return null in this case
             return null;
         }
@@ -540,7 +543,7 @@ public class ElGamalImpl implements ElGamal {
      */
     private int getMaxPlainTextChunkLength() {
 
-        return ((publicKey.getP().bitLength() - 1) / 8) - MIN_NUM_PADDING_BYTES;
+        return (publicKey.getP().bitLength() / 8) - 1;
     }
 
     /**

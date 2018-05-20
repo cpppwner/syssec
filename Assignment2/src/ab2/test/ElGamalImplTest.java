@@ -115,7 +115,8 @@ public class ElGamalImplTest {
         byte[] message = target.decrypt(cipher);
 
         // then
-        MatcherAssert.assertThat(message, is(equalTo(new byte[0])));
+        assertThat(cipher.length, is(equalTo((2 * 1024) / 8)));
+        assertThat(message, is(equalTo(new byte[0])));
     }
 
     @Test
@@ -281,6 +282,9 @@ public class ElGamalImplTest {
 
                 // encrypt message
                 byte[] cipher = target.encrypt(message);
+
+                // cipher must be at least twice as long as the appropriate message
+                assertThat(cipher.length >= 2* message.length, is(true));
 
                 // verify that decryption works
                 assertThat(target.decrypt(cipher), is(equalTo(message)));
