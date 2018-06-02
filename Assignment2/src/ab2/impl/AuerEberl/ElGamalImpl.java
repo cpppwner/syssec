@@ -1,4 +1,4 @@
-package ab2.impl.Eberl;
+package ab2.impl.AuerEberl;
 
 import ab2.ElGamal;
 
@@ -10,6 +10,9 @@ import java.util.*;
 
 /**
  * Implementation of ElGamal.
+ *
+ * @author Thomas Auer
+ * @author Stefan Eberl
  *
  * <p>
  *     The implemented algorithm is based on the following notes: http://www.maths.qmul.ac.uk/~bill/MTH6115/cn9.pdf.
@@ -366,7 +369,7 @@ public class ElGamalImpl implements ElGamal {
      *
      * <p>
      *     The padding scheme is quite simple and not really secure.
-     *     The padded string is {@link #PADDING_BYTE} || {@link #PADDING_SEPARATOR} || chunk.
+     *     The padded string is {@link #PADDING_BYTE}* || {@link #PADDING_SEPARATOR} || chunk.
      * </p>
      *
      * @param chunk The chunk to pad.
