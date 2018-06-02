@@ -1,4 +1,4 @@
-package ab2.impl.AuerEberl;
+package ab2.impl.AuerEberlHarden;
 
 import ab2.ElGamal;
 
@@ -13,6 +13,7 @@ import java.util.*;
  *
  * @author Thomas Auer
  * @author Stefan Eberl
+ * @author Igor Harden
  *
  * <p>
  *     The implemented algorithm is based on the following notes: http://www.maths.qmul.ac.uk/~bill/MTH6115/cn9.pdf.

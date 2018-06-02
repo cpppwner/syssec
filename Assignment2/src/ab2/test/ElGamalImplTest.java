@@ -1,7 +1,7 @@
 package ab2.test;
 
 import ab2.ElGamal;
-import ab2.impl.AuerEberl.ElGamalImpl;
+import ab2.impl.AuerEberlHarden.ElGamalImpl;
 import org.hamcrest.MatcherAssert;
 import org.junit.Ignore;
 import org.junit.Test;

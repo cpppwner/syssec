@@ -16,7 +16,7 @@ import org.junit.Test;
 import ab2.ElGamal;
 import ab2.ElGamal.PrivateKey;
 import ab2.ElGamal.PublicKey;
-import ab2.impl.AuerEberl.ElGamalImpl;
+import ab2.impl.AuerEberlHarden.ElGamalImpl;
 
 public class ElGamalTest {
 
