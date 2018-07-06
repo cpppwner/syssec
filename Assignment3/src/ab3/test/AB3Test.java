@@ -14,7 +14,7 @@ import ab3.AB3;
 import ab3.CertTools;
 import ab3.PasswordTools;
 import ab3.PasswordTools.SaltedHash;
-import ab3.impl.Eberl.AB3Impl;
+import ab3.impl.AuerEberlHarden.AB3Impl;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class AB3Test {

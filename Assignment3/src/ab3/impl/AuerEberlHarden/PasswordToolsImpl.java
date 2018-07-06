@@ -1,4 +1,4 @@
-package ab3.impl.Eberl;
+package ab3.impl.AuerEberlHarden;
 
 import ab3.PasswordTools;
 
@@ -13,7 +13,9 @@ import java.util.Random;
 /**
  * Default implementation for password tools
  *
+ * @author Thomas Auer
  * @author Stefan Eberl
+ * @author Igor Harden
  */
 public class PasswordToolsImpl implements PasswordTools {
 

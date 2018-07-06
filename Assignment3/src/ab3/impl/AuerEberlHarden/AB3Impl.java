@@ -1,4 +1,4 @@
-package ab3.impl.Eberl;
+package ab3.impl.AuerEberlHarden;
 
 import ab3.AB3;
 import ab3.CertTools;
@@ -7,7 +7,9 @@ import ab3.PasswordTools;
 /**
  * Default implementation for {@link AB3}
  *
+ * @author Thomas Auer
  * @author Stefan Eberl
+ * @author Igor Harden
  */
 public class AB3Impl implements AB3 {
 

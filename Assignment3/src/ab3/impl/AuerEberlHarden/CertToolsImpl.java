@@ -1,4 +1,4 @@
-package ab3.impl.Eberl;
+package ab3.impl.AuerEberlHarden;
 
 import ab3.CertTools;
 
@@ -13,7 +13,9 @@ import java.util.stream.Collectors;
 /**
  * Default implementation for cert tools
  *
+ * @author Thomas Auer
  * @author Stefan Eberl
+ * @author Igor Harden
  */
 public class CertToolsImpl implements CertTools {
 
