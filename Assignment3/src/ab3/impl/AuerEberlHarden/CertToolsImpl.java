@@ -367,11 +367,6 @@ public class CertToolsImpl implements CertTools {
         return certificateChain;
     }
 
-    private boolean isRootCertificate(int certificateIndex) {
-
-        return getIsserCertNumber(certificateIndex) == certificateIndex;
-    }
-
     /**
      * Encode given {@code data} to Base64 string representation.
      *
