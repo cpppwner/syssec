@@ -13,7 +13,7 @@ import java.util.Set;
  */
 public interface CertTools {
 	/**
-	 * Lädt SSL-Zertifikate des angegebenen Servers (inkl. Port) via HTTPS.
+	 * Läd SSL-Zertifikate des angegebenen Servers (inkl. Port) via HTTPS.
 	 * Überschreibt bisher gespeicherte Zertifikate. Wird kein Port übergeben, so ist der Standard-HTTPS-Port zu verwenden.
 	 * 
 	 * @param host
@@ -21,7 +21,7 @@ public interface CertTools {
 	 * @param port
 	 *            Port
 	 */
-	boolean loadServerCerts(String host, Integer port);
+	public boolean loadServerCerts(String host, Integer port);
 
 	/**
 	 * Übergibt eine Menge an Zertifikaten. Überschreibt bisher gespeicherte
@@ -29,8 +29,9 @@ public interface CertTools {
 	 * 
 	 * @param certs
 	 *            Menge an Zertifikaten
+	 * @return Liefert true, wenn die Zertifikate geladen wurden. Andernfalls false.
 	 */
-	void setCerts(Set<X509Certificate> certs);
+	public void setCerts(Set<X509Certificate> certs);
 
 	/**
 	 * Liefert die Anzahl der gespeicherten Zertifikate. Diese Methode wird
@@ -38,7 +39,7 @@ public interface CertTools {
 	 * 
 	 * @return Anzahl der gespeicherten Zertifikate
 	 */
-	int getNumberCerts();
+	public int getNumberCerts();
 
 	/**
 	 * Liefert die Base64-Darstellung des jeweiligen Zertifikats ohne Zeilenumbrüche.
@@ -47,7 +48,7 @@ public interface CertTools {
 	 *            die Nummer des Zertifikats mit 0 <= cert < getNumberCerts()
 	 * @return Base64-Darstellung des Zertifikats oder null im Fehlerfall
 	 */
-	String getCertRepresentation(int cert);
+	public String getCertRepresentation(int cert);
 
 	/**
 	 * Liefert die Base64-Darstellung des jeweiligen öffentlichen Schlüssels ohne Zeilenumbrüche.
@@ -56,7 +57,7 @@ public interface CertTools {
 	 *            die Nummer des Zertifikats mit 0 <= cert < getNumberCerts()
 	 * @return Base64-Darstellung des öffentlichen Schlüssels
 	 */
-	String getPublicKey(int cert);
+	public String getPublicKey(int cert);
 
 	/**
 	 * Liefert den Namen des verwendeten Signatur-Verfahrens
@@ -66,7 +67,7 @@ public interface CertTools {
 	 *            getNumberCerts()
 	 * @return Name des verwendeten Signatur-Verfahrens
 	 */
-	String getSignatureAlgorithmName(int cert);
+	public String getSignatureAlgorithmName(int cert);
 
 	/**
 	 * Liefert den Distinguished Name des Zertifikatinhabers
@@ -75,7 +76,7 @@ public interface CertTools {
 	 *            die Nummer des Zertifikats mit 0 <= cert < getNumberCerts()
 	 * @return Distinguished Name des Zertifikatinhabers
 	 */
-	String getSubjectDistinguishedName(int cert);
+	public String getSubjectDistinguishedName(int cert);
 
 	/**
 	 * Liefert den Distinguished Name des Ausstellers
@@ -84,7 +85,7 @@ public interface CertTools {
 	 *            die Nummer des Zertifikats mit 0 <= cert < getNumberCerts()
 	 * @return Distinguished Name des Ausstellers
 	 */
-	String getIssuerDistinguishedName(int cert);
+	public String getIssuerDistinguishedName(int cert);
 
 	/**
 	 * Liefert den Beginn der Gültigkeit des Zertifikats
@@ -93,7 +94,7 @@ public interface CertTools {
 	 *            die Nummer des Zertifikats mit 0 <= cert < getNumberCerts()
 	 * @return Beginn der Gültigkeit des Zertifikats
 	 */
-	Date getValidFrom(int cert);
+	public Date getValidFrom(int cert);
 
 	/**
 	 * Liefert das Ende der Gültigkeit des Zertifikats
@@ -102,7 +103,7 @@ public interface CertTools {
 	 *            die Nummer des Zertifikats mit 0 <= cert < getNumberCerts()
 	 * @return Ende der Gültigkeit des Zertifikats
 	 */
-	Date getValidUntil(int cert);
+	public Date getValidUntil(int cert);
 
 	/**
 	 * Liefert die HEX-Darstellung der Serienummer des Zertifikats
@@ -111,7 +112,7 @@ public interface CertTools {
 	 *            die Nummer des Zertifikats mit 0 <= cert < getNumberCerts()
 	 * @return HEX-Darstellung der Seriennummer
 	 */
-	String getSerialNumber(int cert);
+	public String getSerialNumber(int cert);
 
 	/**
 	 * Liefert die HEX-Darstellung der Seriennummer des Ausstellers
@@ -120,7 +121,7 @@ public interface CertTools {
 	 *            die Nummer des Zertifikats mit 0 <= cert < getNumberCerts()
 	 * @return HEX-Darstellung der Seriennummer des Ausstellers
 	 */
-	String getIssuerSerialNumber(int cert);
+	public String getIssuerSerialNumber(int cert);
 
 	/**
 	 * Liefert die Base64-Darstellung der enthaltenen Signatur des Zertifikats ohne Zeilenumbrüche
@@ -129,7 +130,7 @@ public interface CertTools {
 	 *            die Nummer des Zertifikats mit 0 <= cert < getNumberCerts()
 	 * @return Base64-Darstellung der enthaltenen Signatur
 	 */
-	String getSignature(int cert);
+	public String getSignature(int cert);
 
 	/**
 	 * Liefert die HEX-Darstellung des SHA1-Fingerprints
@@ -138,7 +139,7 @@ public interface CertTools {
 	 *            die Nummer des Zertifikats mit 0 <= cert < getNumberCerts()
 	 * @return HEX-Darstellung des SHA1-Fingerprints oder null im Fehlerfall
 	 */
-	String getSHA1Fingerprint(int cert);
+	public String getSHA1Fingerprint(int cert);
 
 	/**
 	 * Liefert die HEX-Darstellung des SHA256-Fingerprints
@@ -147,52 +148,52 @@ public interface CertTools {
 	 *            die Nummer des Zertifikats mit 0 <= cert < getNumberCerts()
 	 * @return HEX-Darstellung des SHA356-Fingerprints oder null im Fehlerfall
 	 */
-	String getSHA256Fingerprint(int cert);
+	public String getSHA256Fingerprint(int cert);
 
 	/**
 	 * Liefert, ob das Schlüsselpaar für digtiale Signaturen verwendet werden darf
 	 * @param cert die Nummer des Zertifikats mit 0 <= cert < getNumberCerts()
 	 * @return true, wenn das Schlüsselpaar für digitale Signaturen verwendet werden darf
 	 */
-	boolean isForDigitalSignature(int cert);
+	public boolean isForDigitalSignature(int cert);
 
 	/**
 	 * Liefert, ob das Schlüsselpaar für die Verschlüsselung von Sitzungsschlüssel verwendet werden darf
 	 * @param cert die Nummer des Zertifikats mit 0 <= cert < getNumberCerts()
 	 * @return true, wenn das Schlüsselpaar für die Verschlüsselung von Sitzungsschlüsseln verwendet werden darf
 	 */
-	boolean isForKeyEncipherment(int cert);
+	public boolean isForKeyEncipherment(int cert);
 
 	/**
 	 * Liefert, ob das Schlüsselpaar für die Signatur von Public-Key-Zertifikaten verwendet werden darf
 	 * @param cert die Nummer des Zertifikats mit 0 <= cert < getNumberCerts()
 	 * @return true, wenn das Schlüsselpaar für die Signatur von Public-Key-Zertifikaten verwendet werden darf
 	 */
-	boolean isForKeyCertSign(int cert);
+	public boolean isForKeyCertSign(int cert);
 
 	/**
 	 * Liefert, ob das Schlüsselpaar für die Signatur von CRLs verwendet werden darf
 	 * @param cert die Nummer des Zertifikats mit 0 <= cert < getNumberCerts()
 	 * @return true, wenn das Schlüsselpaar für die Signatur von CRLs verwendet werden darf
 	 */
-	boolean isForCRLSign(int cert);
+	public boolean isForCRLSign(int cert);
 
 	/**
 	 * Prüft, ob die Zertifikate alle korrekt signiert sind. Root-Zertifikaten (Selbstsignatur) wird vertraut
 	 * @return True, wenn die Signaturen aller Zertifikate korrekt überprüft wurden
 	 */
-	boolean verifyAllCerts();
+	public boolean verifyAllCerts();
 
 	/**
 	 * Liefert für das gegebene Zertifikat die Nummer des Zertifikats des Ausstelles.
 	 * @param cert die Nummer des Zertifikats mit 0 <= cert < getNumberCerts()
 	 * @return Nummer des Zertifikats des Ausstellers. Falls nicht vorhanden -1
 	 */
-	int getIssuerCertNumber(int cert);
+	public int getIsserCertNumber(int cert);
 
 	/**
 	 * Lierfert die Zertifikatskette (intern verwendete Inidzes). Der letzte Index entspricht dem Root-CA.
 	 * @return Nummern der Zertifikate anhand der Zertifikatskette
 	 */
-	List<Integer> getCertificateChain();
+	public List<Integer> getCertificateChain();
 }

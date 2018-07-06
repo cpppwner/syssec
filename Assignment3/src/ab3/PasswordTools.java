@@ -14,7 +14,7 @@ public interface PasswordTools {
 	 *            Das Passwort
 	 * @return SaltedHash-Objekt
 	 */
-    SaltedHash createSaltedHash(String password);
+	public SaltedHash createSaltedHash(String password);
 
 	/**
 	 * Prüft, ob ein Passwort zum übergebenen Salted-Hash passt
@@ -25,7 +25,7 @@ public interface PasswordTools {
 	 *            Der Salted-Hash
 	 * @return ob das Passwort zum Salted-Hash passt
 	 */
-    boolean checkSaltedHash(String password, SaltedHash hash);
+	public boolean checkSaltedHash(String password, SaltedHash hash);
 
 	/**
 	 * Bestimmt einen Key mithilfe der PBKDF2-Funktion. Sind Parameter null, so
@@ -42,7 +42,7 @@ public interface PasswordTools {
 	 *            Länge des erzeugten Schlüsseln (derived key length)
 	 * @return den erzeugten Schlüssel
 	 */
-    byte[] PBKDF2(byte[] password, byte[] salt, int iterations, int dkLen);
+	public byte[] PBKDF2(byte[] password, byte[] salt, int iterations, int dkLen);
 
 	/**
 	 * Generiert len-Bytes Zufallszahlen mit dem Blum-Blum-Shub-Generator. Bei
@@ -56,14 +56,14 @@ public interface PasswordTools {
 	 *            Gibt die Bitlänge des Moduls n des BBS-Generators an
 	 * @return len-Bytes mit Zufallszahlen
 	 */
-    byte[] generateRandomBytes(int len, int secLen);
+	public byte[] generateRandomBytes(int len, int secLen);
 
 	/**
 	 * Hilfsklasse zur Speicherung eines Salted-Hashes
 	 * 
 	 * @author Raphael Wigoutschnigg
 	 */
-    class SaltedHash {
+	public class SaltedHash {
 
 		public SaltedHash() {
 
